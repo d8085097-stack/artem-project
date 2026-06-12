@@ -1,0 +1,14 @@
+{
+  "name": "artem-project",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run server --prefix vinyl-store\" \"npm run dev --prefix vinyl-store\" \"npm run dev:3002 --prefix vinyl-store/landing-vinyl\"",
+    "server": "npm run server --prefix vinyl-store",
+    "store": "npm run dev --prefix vinyl-store",
+    "landing": "npm run dev:3002 --prefix vinyl-store/landing-vinyl",
+    "install:all": "npm install --prefix vinyl-store && npm install --prefix vinyl-store/landing-vinyl"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
