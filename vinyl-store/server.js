@@ -13,7 +13,7 @@ app.set('strict routing', false);
 const PORT = process.env.PORT || 3001;
 const DB_PATH = path.join(__dirname, 'vinyl.json');
 
-app.use(cors());
+app.use(cors({ origin: ["http://localhost:3000", "http://localhost:5173"] }));
 app.use(express.json());
 
 const INITIAL_DATA = [
@@ -193,8 +193,9 @@ app.post('/api/vinyl/item', async (req, res) => {
       return res.status(400).json({ error: 'Обязательные поля: title, artist, label' });
     }
     const records = await readDB();
+    const maxId = records.length > 0 ? Math.max(...records.map(r => r.id)) : 0;
     const newRecord = {
-      id: Date.now(), title, artist, label,
+      id: maxId + 1, title, artist, label,
       price: price || 0, inStock: inStock !== undefined ? inStock : true,
       image: image || '', description: description || '',
       rating: rating || 5, genre: genre || 'rock',

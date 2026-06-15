@@ -301,3 +301,36 @@ body {
 
 .adm-edit:hover { border-color: var(--yellow); color: var(--yellow); }
 .adm-del:hover { border-color: #e74c3c; color: #e74c3c; }
+
+/* Toast notifications */
+.toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  padding: 14px 24px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  animation: toastIn 0.3s ease;
+  max-width: 360px;
+}
+
+.toast-success {
+  background: #1a1a1a;
+  color: #c8f5c8;
+  border-left: 3px solid #4caf50;
+}
+
+.toast-error {
+  background: #1a1a1a;
+  color: #ffc8c8;
+  border-left: 3px solid #f44336;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

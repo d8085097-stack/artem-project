@@ -16,6 +16,8 @@ const EMPTY_FORM: Partial<VinylRecord> = {
   label: '', tracklist: '',
 };
 
+type Notification = { message: string; type: 'success' | 'error' };
+
 export default function AdminPanel() {
   const [records, setRecords] = useState<VinylRecord[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -23,6 +25,12 @@ export default function AdminPanel() {
   const [formData, setFormData] = useState<Partial<VinylRecord>>({});
   const [jsonView, setJsonView] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [notification, setNotification] = useState<Notification | null>(null);
+
+  const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
 
   const fetchRecords = async () => {
     try {
@@ -31,7 +39,7 @@ export default function AdminPanel() {
       if (!res.ok) throw new Error('Ошибка сети');
       setRecords(await res.json());
     } catch {
-      alert('Не удалось загрузить данные. Проверьте, запущен ли бэкенд!');
+      showNotification('Не удалось загрузить данные. Проверьте, запущен ли бэкенд!', 'error');
     } finally {
       setLoading(false);
     }
@@ -44,17 +52,21 @@ export default function AdminPanel() {
   const handleCancel = () => { setEditingId(null); setIsAdding(false); setFormData({}); };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Удалить пластинку?')) return;
+    if (!window.confirm('Удалить пластинку?')) return;
     try {
       const res = await fetch(`${API_URL}/vinyl/${id}`, { method: 'DELETE' });
-      if (!res.ok) { alert('Ошибка при удалении'); return; }
+      if (!res.ok) { showNotification('Ошибка при удалении', 'error'); return; }
       await fetchRecords();
-    } catch { alert('Сервер недоступен'); }
+      showNotification('Пластинка удалена');
+    } catch {
+      showNotification('Сервер недоступен', 'error');
+    }
   };
 
   const handleSave = async () => {
     if (!formData.title || !formData.artist || !formData.label) {
-      alert('Заполните обязательные поля: название, артист, лейбл'); return;
+      showNotification('Заполните обязательные поля: название, артист, лейбл', 'error');
+      return;
     }
     try {
       const res = isAdding
@@ -66,9 +78,13 @@ export default function AdminPanel() {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData),
           });
-      if (!res.ok) { alert('Ошибка сервера'); return; }
-      await fetchRecords(); handleCancel();
-    } catch { alert('Сервер недоступен'); }
+      if (!res.ok) { showNotification('Ошибка сервера', 'error'); return; }
+      await fetchRecords();
+      handleCancel();
+      showNotification(isAdding ? 'Пластинка добавлена' : 'Пластинка обновлена');
+    } catch {
+      showNotification('Сервер недоступен', 'error');
+    }
   };
 
   const set = (field: keyof VinylRecord, value: string | number | boolean) =>
@@ -86,24 +102,28 @@ export default function AdminPanel() {
     reader.onload = async (ev) => {
       try {
         const data = JSON.parse(ev.target?.result as string);
-        if (!Array.isArray(data)) { alert('Неверный формат'); return; }
+        if (!Array.isArray(data)) { showNotification('Неверный формат файла', 'error'); return; }
         const res = await fetch(`${API_URL}/vinyl`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         });
-        if (res.ok) { fetchRecords(); alert('Данные импортированы!'); }
-      } catch { alert('Ошибка чтения файла'); }
+        if (res.ok) { fetchRecords(); showNotification('Данные импортированы!'); }
+      } catch {
+        showNotification('Ошибка чтения файла', 'error');
+      }
     };
     reader.readAsText(file);
     e.target.value = '';
   };
 
   const handleReset = async () => {
-    if (!confirm('Сбросить БД к начальным данным?')) return;
+    if (!window.confirm('Сбросить БД к начальным данным?')) return;
     try {
       const res = await fetch(`${API_URL}/vinyl/reset`, { method: 'POST' });
-      if (res.ok) { fetchRecords(); alert('БД сброшена!'); }
-    } catch { alert('Ошибка сброса'); }
+      if (res.ok) { fetchRecords(); showNotification('БД сброшена!'); }
+    } catch {
+      showNotification('Ошибка сброса', 'error');
+    }
   };
 
   const avgRating = records.length
@@ -111,6 +131,12 @@ export default function AdminPanel() {
 
   return (
     <div className="adm-root">
+      {notification && (
+        <div className={`toast toast-${notification.type}`}>
+          {notification.message}
+        </div>
+      )}
+
       <header className="adm-header">
         <div className="adm-header-left">
           <span className="adm-logo-small">VINYL HAUS</span>

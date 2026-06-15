@@ -1,12 +1,18 @@
 {
   "name": "artem-project",
   "private": true,
+  "workspaces": [
+    "vinyl-store",
+    "vinyl-store/landing-vinyl"
+  ],
   "scripts": {
-    "dev": "concurrently \"npm run server --prefix vinyl-store\" \"npm run dev --prefix vinyl-store\" \"npm run dev:3002 --prefix vinyl-store/landing-vinyl\"",
-    "server": "npm run server --prefix vinyl-store",
-    "store": "npm run dev --prefix vinyl-store",
-    "landing": "npm run dev:3002 --prefix vinyl-store/landing-vinyl",
-    "install:all": "npm install --prefix vinyl-store && npm install --prefix vinyl-store/landing-vinyl"
+    "dev:all": "concurrently --names \"SERVER,STORE,LANDING\" --prefix-colors \"yellow,cyan,magenta\" \"npm run server:dev -w vinyl-store\" \"npm run dev -w vinyl-store\" \"npm run dev:3002 -w landing\"",
+    "dev": "npm run dev -w vinyl-store",
+    "server": "npm run server -w vinyl-store",
+    "server:dev": "npm run server:dev -w vinyl-store",
+    "store": "npm run dev -w vinyl-store",
+    "landing": "npm run dev:3002 -w landing",
+    "build": "npm run build -w vinyl-store"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
